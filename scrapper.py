@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 from urllib.error import HTTPError, URLError
 import random
 
+
 filename = "news.csv"
 f = open(filename, "w")
-headers = "comments_number, news_name, story, published_date, time, news_author\n"
+headers = "comments_number, news_name, news_story, published_date, time\n"
 f.write(headers)
 proxies = [{'ip': '177.105.192.126', 'port': '55715'}, {'ip': '195.91.249.211', 'port': '54698'},
            {'ip': '185.132.179.108', 'port': '1080'}, {'ip': '197.254.4.130', 'port': '57610'},
@@ -68,54 +69,14 @@ def get_single_item(item_url):
     item_html = bot.read()
     bot.close()
     item_soup = soup(item_html, "html.parser")
-    another_pages = item_soup.find_all('div', {"class": "clear_floats"})
     many_pages = item_soup.find_all('div', {"class": "fullnews white_block"})
-    print("many")
-
-    print(
-        "777777777777777777777777777777777777777777777777777"
-        "77777777777777777777777777777777777777777777777")
-
-    print(another_pages)
     if many_pages:
-        print("5")
         for one_page in many_pages:
-            news_name = one_page.h1.text.replace(",", "/")
-            print("6")
-            news_story = one_page.find_all("p", {"class": "description"})[0].text.replace('""', '|')
+            news_name = one_page.h1.text
+            news_story = one_page.find_all("p", {"class": "description"})[0].text
             published_date = one_page.find_all("span", {"class": "news_date"})[0].text
-            f.write("," + news_name.replace('""', '/') + "," + news_story.replace(",", "/") + ","
-                    + published_date + "\n")
-    elif another_pages:
-        # another_pages = item_soup.find_all('div', {"class": "news_area"})
-        print(
-            "55555555555555555555555555555555555555555555555555555555555555555"
-            "5555555555555555555555555555555555555555555555555555")
-        print("another_pages")
-        print("5555555555555555555555555555555555555555555555555555")
-        print("many_pages")
-        print(
-            "55555555555555555555555555555555555555555555555555555555555"
-            "5555555555555555555555555555555555555555555555555555555555")
-        for another_one_page in another_pages:
-            news_name = another_one_page.find_all("span", {"class": "s0"})[0].text
-            print("666666666")
-
-            news_story = another_one_page.find_all("span", {"class": "s1"})[0].text.replace('""', '|')
-            published_date = another_one_page.find_all("div", {"class": "news_date"})[0].text
-            news_author = another_one_page.find_all("span", {"class": "s0"})[-1].text.replace('""', '|')
-            if news_author:
-                print(news_author)
-                f.write(news_author)
-            else:
-                news_author = ""
-                f.write(news_author)
-            print("7777777777777")
-            f.write("," + news_name.replace('""', '/') + "," + news_story.replace(",", "/") + ","
+            f.write("," + news_name.replace(",", "/") + "," + news_story.replace(",", "/") + ","
                     + published_date + "," + "\n")
-        print("6")
-    else:
-        print("nothing")
 
 
 def web_crawler(max_pages):
@@ -124,7 +85,6 @@ def web_crawler(max_pages):
         proxy = proxies[proxy_index]
         while True:
             try:
-                print("1")
                 count = 0
                 req = Request('http://icanhazip.com')
                 req.set_proxy(proxy['ip'] + ':' + proxy['port'], 'http')
@@ -135,7 +95,6 @@ def web_crawler(max_pages):
                     proxy_index = random_proxy()
                     proxy = proxies[proxy_index]
                     print(proxy)
-                    print("22")
                     try:
                         my_ip = ureq(req).read().decode('utf8')
                         print(my_ip)
@@ -145,7 +104,6 @@ def web_crawler(max_pages):
                         proxy_index = random_proxy()
                         proxy = proxies[proxy_index]
                     try:
-                        print("2")
                         client = ureq(my_url, timeout=10.0)
                     except TimeoutError as time:
                         print(time)
@@ -155,13 +113,10 @@ def web_crawler(max_pages):
                     client.close()
                     page_soup = soup(page_html, "html.parser")
                     containers = page_soup.findAll("div", {"class": "cat_news_item"})
-                    print("3")
-
                     for container in containers:
                         comment_s = container.find_all("span", {"class": "comm_num"})
                         if comment_s:
                             comm_num = comment_s[0].text
-                            print("4")
                             f.write(comm_num)
                         else:
                             space = ""
@@ -172,9 +127,8 @@ def web_crawler(max_pages):
                     count += 1
             except HTTPError as http:
                 print("can't find given url", http)
-            finally:
-                print("Done crawling")
-                return False
+            print("Done crawling")
+            return False
 
 
 def random_proxy():
